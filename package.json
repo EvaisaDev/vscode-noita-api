@@ -8,10 +8,10 @@
   "publisher": "evaisa",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/EvaisaGiac/vscode-noita-api"
   },
   "bugs": {
-    "url": ""
+    "url": "https://github.com/EvaisaGiac/vscode-noita-api/issues"
   },
   "galleryBanner": {
     "color": "#1A1E26",
