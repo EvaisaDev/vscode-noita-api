@@ -90,19 +90,19 @@ end
 					vscode.window.showErrorMessage(message);
 				}
 			})
-			fs.writeFile(path.join(folder, 'init.lua'), init_content, function (err) {
-				if (err) throw err;
-				console.log('File is created successfully.');
-			});
-			fs.writeFile(path.join(folder, 'mod.xml'), mod_xml_content, function (err) {
-				if (err) throw err;
-				console.log('File is created successfully.');
-			});
-			fs.writeFile(path.join(folder, 'workshop.xml'), mod_workshop_xml_content, function (err) {
-				if (err) throw err;
-				console.log('File is created successfully.');
-			});
 		}
+		fs.writeFile(path.join(folder, 'init.lua'), init_content, function (err) {
+			if (err) throw err;
+			console.log('File is created successfully.');
+		});
+		fs.writeFile(path.join(folder, 'mod.xml'), mod_xml_content, function (err) {
+			if (err) throw err;
+			console.log('File is created successfully.');
+		});
+		fs.writeFile(path.join(folder, 'workshop.xml'), mod_workshop_xml_content, function (err) {
+			if (err) throw err;
+			console.log('File is created successfully.');
+		});
 	}
 
 	if(vscode.workspace.workspaceFolders !== undefined) {

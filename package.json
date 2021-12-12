@@ -3,7 +3,7 @@
   "displayName": "Noita Lua API",
   "description": "Adds support for the Noita Lua API",
   "license": "MIT",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "icon": "images/logo.png",
   "publisher": "evaisa",
   "repository": {
