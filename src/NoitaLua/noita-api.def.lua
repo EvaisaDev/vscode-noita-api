@@ -534,9 +534,11 @@ function GameCreateSpriteForXFrames(filename, x, y, centered, sprite_offset_x, s
 function GameShootProjectile(shooter_entity, x, y, target_x, target_y, projectile_entity, send_message, verlet_parent_entity) end
 ---@param entity number
 ---@param amount number
----@param damage_type string
+---@alias damage_type '"DAMAGE_MELEE"' | '"DAMAGE_PROJECTILE"' | '"DAMAGE_EXPLOSION"' | '"DAMAGE_BITE"' | '"DAMAGE_FIRE"' | '"DAMAGE_MATERIAL"' | '"DAMAGE_FALL"' | '"DAMAGE_ELECTRICITY"' | '"DAMAGE_DROWNING"' | '"DAMAGE_PHYSICS_BODY_DAMAGED"' | '"DAMAGE_DRILL"' | '"DAMAGE_SLICE"' | '"DAMAGE_ICE"' | '"DAMAGE_HEALING"' | '"DAMAGE_PHYSICS_HIT"' | '"DAMAGE_RADIOACTIVE"' | '"DAMAGE_POISON"' | '"DAMAGE_MATERIAL_WITH_FLASH"' | '"DAMAGE_OVEREATING"'
+---@param damage_type damage_type
 ---@param description string
----@param ragdoll_fx string
+---@alias ragdoll_fx '"NONE"' | '"NORMAL"' | '"BLOOD_EXPLOSION"' | '"BLOOD_SPRAY"' | '"FROZEN"' | '"CONVERT_TO_MATERIAL"' | '"CUSTOM_RAGDOLL_ENTITY"' | '"DISINTERGRATED"' | '"NO_RAGDOLL_FILE"' | '"PLAYER_RAGDOLL_CAMERA"'        
+---@param ragdoll_fx ragdoll_fx
 ---@param impulse_x number
 ---@param impulse_y number
 ---@param entity_who_is_responsible number 0
@@ -1432,6 +1434,9 @@ function OnModPostInit() end
 -- Called when player entity has been created. Ensures chunks around the player have been loaded & created.
 function OnPlayerSpawned(player_entity) end
 -- Can be defined in init.lua.
+-- Called when the player dies
+function OnPlayerDied( player_entity ) end
+-- Can be defined in init.lua.
 -- Called once the game world is initialized. Doesn't ensure any chunks around the player.
 function OnWorldInitialized() end
 -- Can be defined in init.lua.
@@ -1441,9 +1446,21 @@ function OnWorldPreUpdate() end
 -- Called *every* time the game has finished updating the world
 function OnWorldPostUpdate() end
 -- Can be defined in init.lua.
+-- Called when the biome config is loaded.
+function OnBiomeConfigLoaded() end
+-- Can be defined in init.lua.
 -- Called when the world seed is set and magic numbers have been loaded.
 -- The last point where the Mod API is available. After this materials.xml will be loaded.
 function OnMagicNumbersAndWorldSeedInitialized() end
+-- Can be defined in init.lua.
+-- Called when the game is paused or unpaused.
+function OnPausedChanged( is_paused, is_inventory_pause ) end
+-- Can be defined in init.lua.    
+-- Will be called when the game is unpaused, if player changed any mod settings while the game was paused
+function OnModSettingsChanged() end
+-- Can be defined in init.lua.
+-- Will be called when the game is paused, either by the pause menu or some inventory menus. Please be careful with this, as not everything will behave well when called while the game is paused.
+function OnPausePreUpdate() end
 
 GUI_OPTION = {
 	None = 0,

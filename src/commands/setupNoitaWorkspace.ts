@@ -32,7 +32,11 @@ function OnModPostInit()
 
 end
 
-function OnPlayerSpawned(player_entity) 
+function OnPlayerSpawned( player_entity ) 
+
+end
+
+function OnPlayerDied( player_entity ) 
 
 end
 
@@ -48,7 +52,23 @@ function OnWorldPostUpdate()
 
 end
 
+function OnBiomeConfigLoaded() 
+
+end
+
 function OnMagicNumbersAndWorldSeedInitialized() 
+
+end
+
+function OnPausedChanged( is_paused, is_inventory_pause ) 
+
+end
+
+function OnModSettingsChanged() 
+
+end
+
+function OnPausePreUpdate() 
 
 end
 	`;
