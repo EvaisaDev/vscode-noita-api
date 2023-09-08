@@ -154,6 +154,9 @@ function EntityHasTag(entity_id, tag) end
 ---@param entity_id number
 ---@return string full_path
 function EntityGetFilename(entity_id) end
+---returns the max entity ID currently in use. Entity IDs are increased linearly.
+---@return number entity_max_id
+function EntitiesGetMaxID() end
 ---Deprecated, use ComponentGetValue2() instead.
 ---@param component_id number
 ---@param variable_name string
@@ -248,6 +251,10 @@ function ComponentAddTag(component_id, tag) end
 ---@param component_id number
 ---@param tag string
 function ComponentRemoveTag(component_id, tag) end
+---Returns a string where the tags are comma-separated, or nil if can't find 'component_id' component.
+---@param component_id number
+---@return string|nil tags
+function ComponentGetTags(component_id) end
 ---@param component_id number
 ---@param tag string
 ---@return boolean
@@ -255,7 +262,7 @@ function ComponentHasTag(component_id, tag) end
 ---Returns one or many values matching the type or subtypes of the requested field. Reports error and returns nil if the field type is not supported or field was not found.
 ---@param component_id number
 ---@param field_name string
----@return any|nil
+---@return any?
 function ComponentGetValue2(component_id, field_name) end
 ---Sets the value of a field. Value(s) should have a type matching the field type. Reports error if the values weren't given in correct type, the field type is not supported, or the component does not exist.
 ---@param component_id number
@@ -350,8 +357,9 @@ function LoadEntityToStash(entity_file, stash_entity_id) end
 function AddMaterialInventoryMaterial(entity_id, material_name, count) end
 ---Returns the id of the material taking the largest part of the first MaterialInventoryComponent in 'entity_id', or 0 if nothing is found.
 ---@param entity_id number
+---@param ignore_box2d_materials boolean? true
 ---@return number material_type
-function GetMaterialInventoryMainMaterial(entity_id) end
+function GetMaterialInventoryMainMaterial(entity_id, ignore_box2d_materials) end
 ---@param strength number
 ---@param x number? camera_x
 ---@param y number? camera_y
@@ -479,6 +487,10 @@ function GameKillInventoryItem(inventory_owner_entity_id, item_entity_id) end
 ---@param item_entity_id number
 ---@param do_pick_up_effects boolean? true
 function GamePickUpInventoryItem(who_picks_up_entity_id, item_entity_id, do_pick_up_effects) end
+---Returns all the inventory items that entity_id has
+---@param entity_id number
+---@return table<number> | nil List of item entity IDs or nil if not found
+function GameGetAllInventoryItems(entity_id) end
 ---@param entity_id number
 function GameDropAllItems(entity_id) end
 ---@param entity_id number
@@ -497,13 +509,26 @@ function GameTriggerGameOver() end
 ---@param skip_edge_textures boolean? false
 ---@param color_to_material_table table<string, string>? {}
 ---@param background_z_index number? 50
-function LoadPixelScene(materials_filename, colors_filename, x, y, background_file, skip_biome_checks, skip_edge_textures, color_to_material_table, background_z_index) end
+---@param load_even_if_duplicate boolean? false
+function LoadPixelScene(materials_filename, colors_filename, x, y, background_file, skip_biome_checks, skip_edge_textures, color_to_material_table, background_z_index, load_even_if_duplicate) end
 ---@param background_file string
 ---@param x number
 ---@param y number
 ---@param background_z_index number? 40.0
 ---@param check_biome_corners boolean? false
 function LoadBackgroundSprite(background_file, x, y, background_z_index, check_biome_corners) end
+---NOTE! Removes the pixel scene sprite if the name and position match. Will return true if manages the find and destroy the background sprite
+---@param background_file string
+---@param x number
+---@param y number
+---@return boolean
+function RemovePixelSceneBackgroundSprite(background_file, x, y) end
+---NOTE! Removes pixel scene background sprites inside the given area.
+---@param x_min number
+---@param y_min number
+---@param x_max number
+---@param y_max number
+function RemovePixelSceneBackgroundSprites(x_min, y_min, x_max, y_max) end
 ---@param material_name string
 ---@param x number
 ---@param y number
@@ -512,7 +537,26 @@ function LoadBackgroundSprite(background_file, x, y, background_z_index, check_b
 ---@param yvel number
 ---@param just_visual boolean
 ---@param draw_as_long boolean? false
-function GameCreateParticle(material_name, x, y, how_many, xvel, yvel, just_visual, draw_as_long) end
+---@param gravity_x number? 0
+---@param gravity_y number? 100
+function GameCreateParticle(material_name, x, y, how_many, xvel, yvel, just_visual, draw_as_long, gravity_x, gravity_y) end
+---Create a cosmetic particle
+---@param material_name string
+---@param x number
+---@param y number
+---@param how_many number
+---@param xvel number
+---@param yvel number
+---@param color number? 0
+---@param lifetime_min number? 5
+---@param lifetime_max number? 10
+---@param force_create boolean? true
+---@param draw_front boolean? false
+---@param collide_with_grid boolean? true
+---@param randomize_velocity boolean? true
+---@param gravity_x number? 0
+---@param gravity_y number? 100
+function GameCreateCosmeticParticle( material_name, x, y, how_many, xvel, yvel, color, lifetime_min, lifetime_max, force_create, draw_front, collide_with_grid, randomize_velocity, gravity_x, gravity_y )end
 ---@param filename string
 ---@param x number
 ---@param y number
@@ -534,10 +578,10 @@ function GameCreateSpriteForXFrames(filename, x, y, centered, sprite_offset_x, s
 function GameShootProjectile(shooter_entity, x, y, target_x, target_y, projectile_entity, send_message, verlet_parent_entity) end
 ---@param entity number
 ---@param amount number
----@alias damage_type '"DAMAGE_MELEE"' | '"DAMAGE_PROJECTILE"' | '"DAMAGE_EXPLOSION"' | '"DAMAGE_BITE"' | '"DAMAGE_FIRE"' | '"DAMAGE_MATERIAL"' | '"DAMAGE_FALL"' | '"DAMAGE_ELECTRICITY"' | '"DAMAGE_DROWNING"' | '"DAMAGE_PHYSICS_BODY_DAMAGED"' | '"DAMAGE_DRILL"' | '"DAMAGE_SLICE"' | '"DAMAGE_ICE"' | '"DAMAGE_HEALING"' | '"DAMAGE_PHYSICS_HIT"' | '"DAMAGE_RADIOACTIVE"' | '"DAMAGE_POISON"' | '"DAMAGE_MATERIAL_WITH_FLASH"' | '"DAMAGE_OVEREATING"'
+---@alias damage_type '"DAMAGE_MELEE"' | '"DAMAGE_PROJECTILE"' | '"DAMAGE_EXPLOSION"' | '"DAMAGE_BITE"' | '"DAMAGE_FIRE"' | '"DAMAGE_MATERIAL"' | '"DAMAGE_FALL"' | '"DAMAGE_ELECTRICITY"' | '"DAMAGE_DROWNING"' | '"DAMAGE_PHYSICS_BODY_DAMAGED"' | '"DAMAGE_DRILL"' | '"DAMAGE_SLICE"' | '"DAMAGE_ICE"' | '"DAMAGE_HEALING"' | '"DAMAGE_PHYSICS_HIT"' | '"DAMAGE_RADIOACTIVE"' | '"DAMAGE_POISON"' | '"DAMAGE_MATERIAL_WITH_FLASH"' | '"DAMAGE_OVEREATING"' | '"DAMAGE_CURSE"' | '"DAMAGE_HOLY"'
 ---@param damage_type damage_type
 ---@param description string
----@alias ragdoll_fx '"NONE"' | '"NORMAL"' | '"BLOOD_EXPLOSION"' | '"BLOOD_SPRAY"' | '"FROZEN"' | '"CONVERT_TO_MATERIAL"' | '"CUSTOM_RAGDOLL_ENTITY"' | '"DISINTERGRATED"' | '"NO_RAGDOLL_FILE"' | '"PLAYER_RAGDOLL_CAMERA"'        
+---@alias ragdoll_fx '"NONE"' | '"NORMAL"' | '"BLOOD_EXPLOSION"' | '"BLOOD_SPRAY"' | '"FROZEN"' | '"CONVERT_TO_MATERIAL"' | '"CUSTOM_RAGDOLL_ENTITY"' | '"DISINTEGRATED"' | '"NO_RAGDOLL_FILE"' | '"PLAYER_RAGDOLL_CAMERA"'        
 ---@param ragdoll_fx ragdoll_fx
 ---@param impulse_x number
 ---@param impulse_y number
@@ -599,6 +643,24 @@ function LoadGameEffectEntityTo(entity_id, game_effect_entity_file) end
 ---@param always_load_new boolean
 ---@return number effect_component_id, number effect_entity_id
 function GetGameEffectLoadTo(entity_id, game_effect_name, always_load_new) end
+---Adds the entity to the polymorph random table
+---@param entity_xml string
+---@param is_rare boolean? false
+---@param add_only_one_copy boolean? true
+function PolymorphTableAddEntity(entity_xml, is_rare, add_only_one_copy) end
+---Removes the entity from the polymorph random table
+---@param entity_xml string
+---@param from_common_table boolean? true
+---@param from_rare_table boolean? true
+function PolymorphTableRemoveEntity(entity_xml, from_common_table, from_rare_table) end
+---Returns a list of all the entities in the polymorph random table
+---@param rare_table boolean? false
+---@return table<string> List of entities in the polymorph random table
+function PolymorphTableGet(rare_table) end
+---Set a list of all entities sas the polymorph random table
+---@param table_of_xml_entities table<string>
+---@param rare_table boolean? false
+function PolymorphTableSet(table_of_xml_entities, rare_table ) end
 ---@param x number
 ---@param y number
 function SetPlayerSpawnLocation(x, y) end
@@ -711,6 +773,60 @@ function DEBUG_MARK(x, y, message, color_r, color_g, color_b) end
 function GameGetFrameNum() end
 ---@return number
 function GameGetRealWorldTimeSinceStarted() end
+
+---Debugish function - returns if a key is down, does not depend on state. E.g. player could be in menus or inputting text. See data/scripts/debug/keycodes.lua for the constants
+---@param key_code number
+---@return boolean
+function InputIsKeyDown(key_code) end
+---Debugish function - returns if a key is down this frame, does not depend on state. E.g. player could be in menus or inputting text. See data/scripts/debug/keycodes.lua for the constants
+---@param key_code number
+---@return boolean
+function InputIsKeyJustDown(key_code) end
+---Debugish function - returns if a key is up this frame, does not depend on state. E.g. player could be in menus or inputting text. See data/scripts/debug/keycodes.lua for the constants
+---@param key_code number
+---@return boolean
+function InputIsKeyJustUp(key_code) end
+---Debugish function - returns raw x, y coordinates of the mouse on screen
+---@return number x, number y
+function InputGetMousePosOnScreen() end
+---Debugish function - returns if mouse button is down. Does not depend on state. E.g. player could be in menus. See data/scripts/debug/keycodes.lua for the constants
+---@param mouse_button number
+---@return boolean
+function InputIsMouseButtonDown(mouse_button) end
+---Debugish function - returns if mouse button is down. Does not depend on state. E.g. player could be in menus. See data/scripts/debug/keycodes.lua for the constants
+---@param mouse_button number
+---@return boolean
+function InputIsMouseButtonJustDown(mouse_button) end
+---Debugish function - returns if mouse button is down. Does not depend on state. E.g. player could be in menus. See data/scripts/debug/keycodes.lua for the constants
+---@param mouse_button number
+---@return boolean
+function InputIsMouseButtonJustUp(mouse_button) end
+---Debugish function - returns if 'joystick' button is down. Does not depend on state. E.g. player could be in menus. See data/scripts/debug/keycodes.lua for the constants
+---@param joystick_index number
+---@param joystick_button number
+---@return boolean
+function InputIsJoystickButtonDown(joystick_index, joystick_button) end
+---Debugish function - returns if 'joystick' button is just down. Does not depend on state. E.g. player could be in menus. See data/scripts/debug/keycodes.lua for the constants
+---@param joystick_index number
+---@param joystick_button number
+---@return boolean
+function InputIsJoystickButtonJustDown(joystick_index, joystick_button) end
+---Debugish function - returns analog 'joystick' button value (0-1). analog_button_index 0 = left trigger, 1 = right trigger Does not depend on state. E.g. player could be in menus. See data/scripts/debug/keycodes.lua for the constants
+---@param joystick_index number
+---@param analog_button_index number
+---@return number
+function InputGetJoystickAnalogButton(joystick_index, analog_button_index) end
+---Debugish function - returns true if 'joystick' at that index is connected. Does not depend on state. E.g. player could be in menus. See data/scripts/debug/keycodes.lua for the constants
+---@param joystick_index number
+---@return boolean
+function InputIsJoystickConnected(joystick_index) end
+---Debugish function - returns analog stick positions (-1,+1). stick_id 0 = left, 1 = right, Does not depend on state. E.g. player could be in menus. See data/scripts/debug/keycodes.lua for the constants
+---@param joystick_index number
+---@param stick_id number
+---@return number x, number y
+function InputGetJoystickAnalogStick(joystick_index, stick_id) end
+
+
 ---@param entity_id number
 ---@return boolean
 function IsPlayer(entity_id) end
@@ -949,8 +1065,108 @@ function PhysicsGetComponentVelocity(entity_id, component_id) end
 ---@param component_id number
 ---@return number vel
 function PhysicsGetComponentAngularVelocity(entity_id, component_id) end
+
+--[[
+	Add these:
+	PhysicsComponentGetTransform( component_id:int ) -> x:number, y:number, angle:number, vel_x:number, vel_y:number, angular_vel:number [NOTE! results are Box2D units. Velocities need to converted with PhysicsVecToGameVec.]
+	PhysicsComponentSetTransform( component_id:int, x:number, y:number, angle:number, vel_x:number, vel_y:number, angular_vel:number )
+	PhysicsBodyIDGetFromEntity( entity_id:int, component_id:int = 0 ) -> {physics_body_id} [NOTE! If component_id is given, will return all the bodies linked to that component. If component_id is not given, will return all the bodies linked to the entity (with joints or through components).]
+	PhysicsBodyIDQueryBodies( world_pos_min_x:number, world_pos_min_y:number, world_pos_max_x:number, world_pos_max_y:number, include_static_bodies:boolean = false, are_these_box2d_units:boolean = false ) -> {physics_body_id} [NOTE! returns an array of physics_body_id(s) of all the box2d bodies in the given area. The default coordinates are in game world space. If passing a sixth argument with true, we will assume the coordinates are in box2d units. ]
+	PhysicsBodyIDGetTransform( physics_body_id:int ) -> nil | x:number, y:number, angle:number, vel_x:number, vel_y:number, angular_vel:number [NOTE! returns nil, if body was not found. Results are Box2D units. Velocities need to converted with PhysicsVecToGameVec.]
+	PhysicsBodyIDSetTransform( physics_body_id:int, x:number, y:number, angle:number, vel_x:number, vel_y:number, angular_vel:number )
+	PhysicsBodyIDApplyForce( physics_body_id:int, force_x:number, force_y:number, world_pos_x:number = nil, world_pos_y:number = nil ) [NOTE! force is in box2d units. world_pos_ is game world coordinates. If world_pos is not given will use the objects center as the position of where the force will be applied.], 
+	PhysicsBodyIDApplyTorque( physics_body_id:int, torque:number )
+	PhysicsBodyIDGetWorldCenter( physics_body_id:int ) -> x:number, y:number [NOTE! returns nil, if body was not found. Results are Box2D units. ]
+	PhysicsBodyIDGetDamping( physics_body_id:int ) -> linear_damping:number, angular_damping:number [NOTE! returns nil, if body was not found. Results are 0-1. ]
+	PhysicsBodyIDSetDamping( physics_body_id:int, linear_damping:number, angular_damping:number = nil ) [NOTE! if angular_damping is given will set it as well.] 
+	PhysicsBodyIDGetGravityScale( physics_body_id:int ) -> gravity_scale:number [NOTE! returns nil, if body was not found. ]
+	PhysicsBodyIDSetGravityScale( physics_body_id:int, gravity_scale:number ) 
+	PhysicsBodyIDGetBodyAABB( physics_body_id:int ) -> nil 
+]]
+
+---NOTE! results are Box2D units. Velocities need to converted with PhysicsVecToGameVec.
+---@param component_id number
+---@return number x, number y, number angle, number vel_x, number vel_y, number angular_vel
+function PhysicsComponentGetTransform(component_id) end
+---@param component_id number
+---@param x number
+---@param y number
+---@param angle number
+---@param vel_x number
+---@param vel_y number
+---@param angular_vel number
+function PhysicsComponentSetTransform(component_id, x, y, angle, vel_x, vel_y, angular_vel) end
+---NOTE! If component_id is given, will return all the bodies linked to that component. If component_id is not given, will return all the bodies linked to the entity (with joints or through components).
+---@param entity_id number
+---@param component_id number? 0
+---@return table<number> physics_body_id
+function PhysicsBodyIDGetFromEntity(entity_id, component_id) end
+---NOTE! returns an array of physics_body_id(s) of all the box2d bodies in the given area. The default coordinates are in game world space. If passing a sixth argument with true, we will assume the coordinates are in box2d units.
+---@param world_pos_min_x number
+---@param world_pos_min_y number
+---@param world_pos_max_x number
+---@param world_pos_max_y number
+---@param include_static_bodies boolean? false
+---@param are_these_box2d_units boolean? false
+---@return table<number> physics_body_id
+function PhysicsBodyIDQueryBodies(world_pos_min_x, world_pos_min_y, world_pos_max_x, world_pos_max_y, include_static_bodies, are_these_box2d_units) end
+---NOTE! returns nil, if body was not found. Results are Box2D units. Velocities need to converted with PhysicsVecToGameVec.
+---@param physics_body_id number
+---@return number x, number y, number angle, number vel_x, number vel_y, number angular_vel
+function PhysicsBodyIDGetTransform(physics_body_id) end
+---@param physics_body_id number
+---@param x number
+---@param y number
+---@param angle number
+---@param vel_x number
+---@param vel_y number
+---@param angular_vel number
+function PhysicsBodyIDSetTransform(physics_body_id, x, y, angle, vel_x, vel_y, angular_vel) end
+---NOTE! force is in box2d units. world_pos_ is game world coordinates. If world_pos is not given will use the objects center as the position of where the force will be applied.
+---@param physics_body_id number
+---@param force_x number
+---@param force_y number
+---@param world_pos_x number? nil
+---@param world_pos_y number? nil
+function PhysicsBodyIDApplyForce(physics_body_id, force_x, force_y, world_pos_x, world_pos_y) end
+---@param physics_body_id number
+---@param torque number
+function PhysicsBodyIDApplyTorque(physics_body_id, torque) end
+---NOTE! returns nil, if body was not found. Results are Box2D units.
+---@param physics_body_id number
+---@return number x, number y
+function PhysicsBodyIDGetWorldCenter(physics_body_id) end
+---NOTE! returns nil, if body was not found. Results are 0-1.
+---@param physics_body_id number
+---@return number linear_damping, number angular_damping
+function PhysicsBodyIDGetDamping(physics_body_id) end
+---@param physics_body_id number
+---@param linear_damping number
+---@param angular_damping number? nil
+function PhysicsBodyIDSetDamping(physics_body_id, linear_damping, angular_damping) end
+---NOTE! returns nil, if body was not found.
+---@param physics_body_id number
+---@return number gravity_scale
+function PhysicsBodyIDGetGravityScale(physics_body_id) end
+---@param physics_body_id number
+---@param gravity_scale number
+function PhysicsBodyIDSetGravityScale(physics_body_id, gravity_scale) end
+---NOTE! returns nil, if body was not found.
+---@param physics_body_id number
+---@return number min_x, number min_y, number max_x, number max_y
+function PhysicsBodyIDGetBodyAABB(physics_body_id) end
+
+
 ---@param entity_id number
 function PhysicsBody2InitFromComponents(entity_id) end
+---@param x number
+---@param y number? 0
+---@return number x, number y
+function PhysicsPosToGamePos(x, y) end
+---@param x number
+---@param y number? 0
+---@return number x, number y
+function GamePosToPhysicsPos(x, y) end
 ---@param x number
 ---@param y number? 0
 ---@return number x, number y
@@ -1277,6 +1493,15 @@ function ConvertMaterialEverywhere(material_from_type, material_to_type) end
 ---@param trim_box2d boolean
 ---@param update_edge_graphics_dummy boolean
 function ConvertMaterialOnAreaInstantly(area_x, area_y, area_w, area_h, material_from_type, material_to_type, trim_box2d, update_edge_graphics_dummy) end
+---Loads a given .txt file as a ragdoll into the game, made of the material given in material.
+---@param filename string
+---@param pos_x number
+---@param pos_y number
+---@param material string? "meat"
+---@param scale_x number? 1
+---@param impulse_x number? 0
+---@param impulse_y number? 0
+function LoadRagdoll(filename, pos_x, pos_y, material, scale_x, impulse_x, impulse_y) end
 ---@return number
 function GetDailyPracticeRunSeed() end
 ---Returns true if a mod with the id 'mod_id' is currently active. For example mod_id = "nightmare". 
@@ -1288,6 +1513,13 @@ function ModIsEnabled(mod_id) end
 function ModGetActiveModIDs() end
 ---@return number
 function ModGetAPIVersion() end
+---Returns true if the file exists.
+---@return boolean
+function ModDoesFileExist(filename) end
+---Returns a list of filenames from which materials were loaded.
+---@return string[] filenames
+function ModMaterialFilesGet() end
+
 ---Returns the value of a mod setting. 'id' should normally be in the format 'mod_name.setting_id'. Cache the returned value in your lua context if possible.
 ---@param id string
 ---@return boolean|number|string|nil
@@ -1462,6 +1694,7 @@ function OnModSettingsChanged() end
 -- Will be called when the game is paused, either by the pause menu or some inventory menus. Please be careful with this, as not everything will behave well when called while the game is paused.
 function OnPausePreUpdate() end
 
+-- Defined in "data/scripts/lib/utilities.lua".
 GUI_OPTION = {
 	None = 0,
 
@@ -1517,9 +1750,10 @@ GUI_OPTION = {
 	_SnapToCenter = 62,
 	Disabled = 63,
 }
-
+-- Defined in "data/scripts/lib/utilities.lua".
 GUI_RECT_ANIMATION_PLAYBACK = {
 	PlayToEndAndHide = 0,
 	PlayToEndAndPause = 1,
 	Loop = 2,
 }
+-- Defined in "data/scripts/debug/keycodes.lua".
