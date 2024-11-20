@@ -81,9 +81,11 @@ function EntityGetTransform(entity_id) end
 ---@param parent_id number
 ---@param child_id number
 function EntityAddChild(parent_id, child_id) end
+---If passed the optional 'tag' parameter, will return only child entities that have that tag (If 'tag' isn't a valid tag name, will return no entities). If no entities are returned, might return either an empty table or nil.
 ---@param entity_id number
+---@param tag string? ""
 ---@return number[]|nil entity_id
-function EntityGetAllChildren(entity_id) end
+function EntityGetAllChildren(entity_id, tag) end
 ---@param entity_id number
 ---@return number entity_id
 function EntityGetParent(entity_id) end
@@ -150,7 +152,7 @@ function EntityRemoveTag(entity_id, tag) end
 ---@param tag string
 ---@return boolean
 function EntityHasTag(entity_id, tag) end
----return value example: 'data/entities/items/flute.xml'
+---Return value example: 'data/entities/items/flute.xml'. Incorrect value is returned if the entity has passed through the world streaming system.
 ---@param entity_id number
 ---@return string full_path
 function EntityGetFilename(entity_id) end
@@ -165,22 +167,22 @@ function ComponentGetValue(component_id, variable_name) end
 ---Deprecated, use ComponentGetValue2() instead.
 ---@param component_id number
 ---@param variable_name string
----@return boolean
+---@return boolean? boolean
 function ComponentGetValueBool(component_id, variable_name) end
 ---Deprecated, use ComponentGetValue2() instead.
 ---@param component_id number
 ---@param variable_name string
----@return number
+---@return number? number
 function ComponentGetValueInt(component_id, variable_name) end
 ---Deprecated, use ComponentGetValue2() instead.
 ---@param component_id number
 ---@param variable_name string
----@return number
+---@return number? number
 function ComponentGetValueFloat(component_id, variable_name) end
 ---Deprecated, use ComponentGetValue2() instead.
 ---@param component_id number
 ---@param variable_name string
----@return number x, number y
+---@return number? x, number? y
 function ComponentGetValueVector2(component_id, variable_name) end
 ---Deprecated, use ComponentSetValue2() instead.
 ---@param component_id number
@@ -221,24 +223,6 @@ function ComponentGetMetaCustom(component_id, variable_name) end
 ---@param variable_name string
 ---@return string|nil string
 function ComponentObjectGetValue(component_id, object_name, variable_name) end
----Deprecated, use ComponentObjectGetValue2() instead.
----@param component_id number
----@param object_name string
----@param variable_name string
----@return string|nil string
-function ComponentObjectGetValueBool(component_id, object_name, variable_name) end
----Deprecated, use ComponentObjectGetValue2() instead.
----@param component_id number
----@param object_name string
----@param variable_name string
----@return string|nil string
-function ComponentObjectGetValueInt(component_id, object_name, variable_name) end
----Deprecated, use ComponentObjectGetValue2() instead.
----@param component_id number
----@param object_name string
----@param variable_name string
----@return string|nil string
-function ComponentObjectGetValueFloat(component_id, object_name, variable_name) end
 ---Deprecated, use ComponentObjectSetValue2() instead.
 ---@param component_id number
 ---@param object_name string
@@ -259,12 +243,12 @@ function ComponentGetTags(component_id) end
 ---@param tag string
 ---@return boolean
 function ComponentHasTag(component_id, tag) end
----Returns one or many values matching the type or subtypes of the requested field. Reports error and returns nil if the field type is not supported or field was not found.
+---Returns one or many values matching the type or subtypes of the requested field. Reports error and returns nil if the field type is not supported or field was not found. This is up to 7.5x faster than the old ComponentSetValue functions.
 ---@param component_id number
 ---@param field_name string
 ---@return any?
 function ComponentGetValue2(component_id, field_name) end
----Sets the value of a field. Value(s) should have a type matching the field type. Reports error if the values weren't given in correct type, the field type is not supported, or the component does not exist.
+---Sets the value of a field. Value(s) should have a type matching the field type. Reports error if the values weren't given in correct type, the field type is not supported, or the component does not exist. This is up to 20x faster than the old ComponentSetValue functions.
 ---@param component_id number
 ---@param field_name string
 ---@vararg any
@@ -310,6 +294,10 @@ function ComponentGetVector(component_id, array_name, type_stored_in_vector) end
 ---@param component_id number
 ---@return boolean
 function ComponentGetIsEnabled(component_id) end
+---Returns the id of the entity that owns a component, or 0.
+---@param component_id number
+---@return number entity_id 0
+function ComponentGetEntity( component_id ) end
 ---Returns a string-indexed table of string.
 ---@param component_id number
 ---@return table<string, string>|nil
@@ -346,8 +334,9 @@ function SpawnStash(x, y, level, action_count) end
 ---@param x number
 ---@param y number
 ---@param level number
+---@param spawn_now boolean? false
 ---@return number spawn_state_id, number entity_id
-function SpawnApparition(x, y, level) end
+function SpawnApparition(x, y, level, spawn_now) end
 ---@param entity_file string
 ---@param stash_entity_id number
 function LoadEntityToStash(entity_file, stash_entity_id) end
@@ -355,6 +344,10 @@ function LoadEntityToStash(entity_file, stash_entity_id) end
 ---@param material_name string
 ---@param count number
 function AddMaterialInventoryMaterial(entity_id, material_name, count) end
+---If material_name is empty, all materials will be removed.
+---@param entity_id number
+---@param material_name string? ""
+function RemoveMaterialInventoryMaterial(entity_id, material_name) end
 ---Returns the id of the material taking the largest part of the first MaterialInventoryComponent in 'entity_id', or 0 if nothing is found.
 ---@param entity_id number
 ---@param ignore_box2d_materials boolean? true
@@ -537,9 +530,8 @@ function RemovePixelSceneBackgroundSprites(x_min, y_min, x_max, y_max) end
 ---@param yvel number
 ---@param just_visual boolean
 ---@param draw_as_long boolean? false
----@param gravity_x number? 0
----@param gravity_y number? 100
-function GameCreateParticle(material_name, x, y, how_many, xvel, yvel, just_visual, draw_as_long, gravity_x, gravity_y) end
+---@param randomize_velocity boolean? true
+function GameCreateParticle(material_name, x, y, how_many, xvel, yvel, just_visual, draw_as_long, randomize_velocity) end
 ---Create a cosmetic particle
 ---@param material_name string
 ---@param x number
@@ -598,6 +590,10 @@ function EntityIngestMaterial(entity, material_type, amount) end
 ---@param entity number
 ---@param status_type_id string
 function EntityRemoveIngestionStatusEffect(entity, status_type_id) end
+---@param entity number
+---@param status_type_id string
+---@param status_cooldown number? 0
+function EntityRemoveStainStatusEffect(entity, status_type_id, status_cooldown) end
 ---Adds random visible stains of 'material_type' to entity. 'amount' controls the number of stain cells added. Does nothing if 'entity' doesn't have a SpriteStainsComponent. Use CellFactory_GetType() to convert a material name to material type.
 ---@param entity number
 ---@param material_type number
@@ -616,6 +612,13 @@ function EntityRefreshSprite(entity, sprite_component) end
 ---@param entity number
 ---@return number
 function EntityGetWandCapacity(entity) end
+---Returns the position of a hot spot defined by a HotspotComponent. If 'transformed' is true, will return the position in world coordinates, transformed using the entity's transform.
+---@param entity number
+---@param hotspot_tag string
+---@param transformed boolean
+---@param include_disabled_components boolean? false
+---@return number x, number y
+function EntityGetHotspot(entity, hotspot_tag, transformed, include_disabled_components) end
 ---Plays animation. Follow up animation ('followup_name') is applied only if 'followup_priority' is given.
 ---@param entity_id number
 ---@param name string
@@ -714,6 +717,27 @@ function FindFreePositionForBody(ideal_pos_x, idea_pos_y, velocity_x, velocity_y
 ---@param ray_count number
 ---@return boolean found_normal, number normal_x, number normal_y, number approximate_distance_from_surface
 function GetSurfaceNormal(pos_x, pos_y, ray_length, ray_count) end
+---Returns the approximate sky visibility (sky ambient level) at a point as a number between 0 and 1. The value is not affected by weather or time of day. This value is used by the post fx shader after some temporal and spatial smoothing.
+---@param pos_x number
+---@param pos_y number
+---@return number sky
+function GameGetSkyVisibility(pos_x, pos_y) end
+---Returns an integer between 0 and 255. Larger value means more coverage. Returns -1 if query is outside the bounds of the fog of war grid. For performance reasons consider using the components that manipulate fog of war.
+---@param pos_x number
+---@param pos_y number
+---@return number fog_of_war
+function GameGetFogOfWar(pos_x, pos_y) end
+---Returns an integer between 0 and 255. Larger value means more coverage. Returns -1 if query is outside the bounds of the fog of war grid. The value is bilinearly filtered using four samples around 'pos'. For performance reasons consider using the components that manipulate fog of war.
+---@param pos_x number
+---@param pos_y number
+---@return number fog_of_war
+function GameGetFogOfWarBilinear(pos_x, pos_y) end
+---'fog_of_war' should be between 0 and 255 (but will be clamped to the correct range with a int32->uint8 cast). Larger value means more coverage. Returns a boolean indicating whether or not the position was inside the bounds of the fog of war grid. For performance reasons consider using the components that manipulate fog of war.
+---@param pos_x number
+---@param pos_y number
+---@param fog_of_war number
+---@return boolean pos_valid
+function GameSetFogOfWar(pos_x, pos_y, fog_of_war) end
 ---Returns true if the area inside the bounding box defined by the parameters has been streamed in and no pixel scenes are loading in the area.
 ---@param min_x number
 ---@param min_y number
@@ -1180,6 +1204,19 @@ function GameVecToPhysicsVec(x, y) end
 ---@param image_filename string
 ---@param max_durability number? 2147483647
 function LooseChunk(world_pos_x, world_pos_y, image_filename, max_durability) end
+
+---@param world_pos_x number
+---@param world_pos_y number
+---@param radius number
+---@param force number
+function VerletApplyCircularForce(world_pos_x, world_pos_y, radius, force) end
+---@param world_pos_x number
+---@param world_pos_y number
+---@param radius number
+---@param force_x number
+---@param force_y number
+function VerletApplyDirectionalForce(world_pos_x, world_pos_y, radius, force_x, force_y) end
+
 ---@param key string
 ---@return boolean bool_is_new
 function AddFlagPersistent(key) end
@@ -1213,21 +1250,34 @@ function GamePlaySound(bank_filename, event_path, x, y) end
 ---@param entity_id number
 ---@param event_name string
 function GameEntityPlaySound(entity_id, event_name) end
----Plays a sound loop through an AudioLoopComponent tagged with 'component_tag' in 'entity'. 'intensity' affects the intensity passed to the audio event. Must be called every frame when the sound should play.
+---Plays a sound loop through an AudioLoopComponent tagged with 'component_tag' in 'entity'. 'intensity' & 'intensity2' affect the intensity parameters passed to the audio event. Must be called every frame when the sound should play.
 ---@param entity number
 ---@param component_tag string
 ---@param intensity number
-function GameEntityPlaySoundLoop(entity, component_tag, intensity) end
+---@param intensity2 number? 0
+function GameEntityPlaySoundLoop(entity, component_tag, intensity, intensity2) end
 ---Can be used to pass custom parameters to the post_final shader, or override values set by the game code. The shader uniform called 'name' will be set to the latest given values on this and following frames.
----@param name string
+---@param parameter_name string
 ---@param x number
 ---@param y number
 ---@param z number
 ---@param w number
-function GameSetPostFxParameter(name, x, y, z, w) end
+function GameSetPostFxParameter(parameter_name, x, y, z, w) end
 ---Will remove a post_final shader parameter value binding set via game GameSetPostFxParameter().
----@param name string
-function GameUnsetPostFxParameter(name) end
+---@param parameter_name string
+function GameUnsetPostFxParameter(parameter_name) end
+
+---Can be used to pass 2D textures to the post_final shader. The shader uniform called 'parameter_name' will be set to the latest given value on this and following frames. 'texture_filename' can either point to a file, or a virtual file created using the ModImage API. If 'update_texture' is true, the texture will be re-uploaded to the GPU (could be useful with dynamic textures, but will incur a heavy performance hit with textures that are loaded from the disk). Accepted values for 'filtering_mode' and 'wrapping_mode' can be found in 'data/libs/utilities.lua'. Each call with a unique 'parameter_name' will create a separate texture while the parameter is in use, so this should be used with some care. While it's possible to change 'texture_filename' on the fly, if texture size changed, this causes destruction of the old texture and allocating a new one, which can be quite slow.
+---@param parameter_name string
+---@param texture_filename string
+---@param filtering_mode number
+---@param wrapping_mode number
+---@param update_texture boolean? false
+function GameSetPostFxTextureParameter(parameter_name, texture_filename, filtering_mode, wrapping_mode, update_texture) end
+---Will remove a post_final shader parameter value binding set via game GameSetPostFxTextureParameter().
+---@param parameter_name string
+function GameUnsetPostFxTextureParameter(parameter_name) end
+
 ---@param text_or_key string
 ---@return string string
 function GameTextGetTranslatedOrNot(text_or_key) end
@@ -1307,7 +1357,10 @@ function GuiAnimateScaleIn(gui, id, acceleration, reset) end
 ---@param x number
 ---@param y number
 ---@param text string
-function GuiText(gui, x, y, text) end
+---@param scale number? 1
+---@param font string? ""
+---@param font_is_pixel_font boolean? true
+function GuiText(gui, x, y, text, scale, font, font_is_pixel_font) end
 ---Deprecated. Use GuiOptionsAdd() or GuiOptionsAddForNextWidget() with GUI_OPTION.Align_HorizontalCenter and GuiText() instead.
 ---@param gui userdata
 ---@param x number
@@ -1343,8 +1396,11 @@ function GuiImageNinePiece(gui, id, x, y, width, height, alpha, sprite_filename,
 ---@param x number
 ---@param y number
 ---@param text string
+---@param scale number? 1
+---@param font string? ""
+---@param font_is_pixel_font boolean? true
 ---@return boolean clicked, boolean right_clicked
-function GuiButton(gui, id, x, y, text) end
+function GuiButton(gui, id, x, y, text, scale, font, font_is_pixel_font) end
 ---@param gui userdata
 ---@param id number
 ---@param x number
@@ -1448,8 +1504,10 @@ function GuiGetScreenDimensions(gui) end
 ---@param text string
 ---@param scale number? 1
 ---@param line_spacing number? 2
+---@param font string? ""
+---@param font_is_pixel_font boolean? true
 ---@return number width, number height
-function GuiGetTextDimensions(gui, text, scale, line_spacing) end
+function GuiGetTextDimensions(gui, text, scale, line_spacing, font, font_is_pixel_font) end
 ---Returns size of the given image in the gui coordinate system.
 ---@param gui userdata
 ---@param image_filename string
@@ -1475,7 +1533,9 @@ function Debug_SaveTestPlayer() end
 function DebugBiomeMapGetFilename(x, y) end
 ---@param entity_id number
 ---@param material string
-function EntityConvertToMaterial(entity_id, material) end
+---@param use_material_colors boolean? true
+---@param replace_existing_cells boolean? false
+function EntityConvertToMaterial(entity_id, material, use_material_colors, replace_existing_cells) end
 ---@param material_dynamic string? ""
 ---@param material_static string? ""
 function ConvertEverythingToGold(material_dynamic, material_static) end
@@ -1567,32 +1627,94 @@ function StreamingForceNewVoting() end
 ---Turns the voting UI on or off.
 ---@param enabled boolean
 function StreamingSetVotingEnabled(enabled) end
----Basically calls dofile(from_filename) at the end of 'to_filename'. Available only during mod initialization.
+---Basically calls dofile(from_filename) at the end of 'to_filename'. Available only in init.lua. Should not be called after OnMostPostInit(should be avoided after that because changes might not propagate, or could work in non-deterministic manner).
 ---@param to_filename string
 ---@param from_filename string
 function ModLuaFileAppend(to_filename, from_filename) end
----Returns the current (modded or not) content of the data file 'filename'. Allows access only to data files and files from enabled mods. Available only during mod initialization.
+
+--[[
+ModLuaFileGetAppends( filename:string ) -> {string} [Returns the paths of files that have been appended to 'filename' using ModLuaFileAppend(). Unlike most Mod* functions, this one is available everywhere.]
+ModLuaFileSetAppends( filename:string, {string} ) [Replaces the appends list (see ModLuaFileAppend) of a file with the given table. Available only in init.lua. Should not be called after OnMostPostInit(should be avoided after that because changes might not propagate, or could work in non-deterministic manner).]
+ModTextFileGetContent( filename:string ) -> string [Returns the current (modded or not) content of the data file 'filename'. Allows access only to data files and files from enabled mods. "mods/mod/data/file.xml" and "data/file.xml" point to the same file. Unlike most Mod* functions, this one is available everywhere.]
+ModTextFileSetContent( filename:string, new_content:string ) [Sets the content the game sees for the file 'filename'. Allows access only to mod and data files. "mods/mod/data/file.xml" and "data/file.xml" point to the same file. Available only in init.lua. Should not be called after OnMostPostInit (should be avoided after that because changes might not propagate, or could work in non-deterministic manner). ModTextFileWhoSetContent might also return incorrect values if this is used after OnMostPostInit.]
+ModTextFileWhoSetContent( filename:string ) -> string [Returns the id of the last mod that called ModTextFileSetContent with 'filename', or "". Unlike most Mod* functions, this one is available everywhere.]
+ModImageMakeEditable( filename:string, width:int, height:int ) -> id:int,w:int,h:int [Makes an image available for in-memory editing through ModImageGetPixel() and ModImageSetPixel(). \nReturns an id that can be used to access the image, and the dimensions of the image. \nIf an image file with the name wasn't found, an in-memory image of the given size will be created, filled with empty pixels (0x0), and added to the virtual filesystem under 'filename'. \nIf an image with the given name has been previously created through ModImageMakeEditable, the id of that image will be returned. In case memory allocation failed, or if this is called outside mod init using a filename that wasn't succesfully used with this function during the init, 0 will be returned as the id. \nThe game will apply further processing to some images, so the final binary data might end up different. For example, R and B channels are sometimes swapped, and on some textures the colors will be extended by one pixel outside areas where A>0. \nIf game code has already loaded the image (for example this could be the case with some UI textures), the changes will probably not be applied. \nThe changes done using the ModImage* API will need to be done again on each game restart/new game. It's possible that some images will be cached over restarts, and changes will not be visible in the game until a full executable restart - you will have to figure out where that applies. \nAllows access to data files and files from enabled mods. "mods/mod/data/file.png" and "data/file.png" point to the same file. Available only in init.lua during mod init. ]
+ModImageIdFromFilename( filename:string ) -> id:int,w:int,h:int [Returns an id that can be used with ModImageGetPixel and ModImageSetPixel, and the dimensions of the image. \n If a previous successful call to ModImageMakeEditable hasn't been made with the given filename, 0 will be returned as 'id', 'w' and 'h'. \nUnlike most Mod* functions, this one is available everywhere.]
+ModImageGetPixel( id:int, x:int, y:int ) -> uint [Returns the color of a pixel in ABGR format (0xABGR). 'x' and 'y' are zero-based. \nUse ModImageMakeEditable to create an id that can be used with this function. \n While it's possible to edit images after mod init, it's not guaranteed that game systems will see the changes, as the system might already have loaded the image at that point. \nThe function will silently fail nad return 0 if 'id' isn't valid. \nUnlike most Mod* functions, this one is available everywhere.]
+ModImageSetPixel( id:int, x:int, y:int, color:uint ) [Sets the color of a pixel in ABGR format (0xABGR). 'x' and 'y' are zero-based. \nUse ModImageMakeEditable to create an id that can be used with this function. \n The function will silently fail if 'id' isn't valid. \nUnlike most Mod* functions, this one is available everywhere.]
+ModImageWhoSetContent( filename:string ) -> string [Returns the id of the last mod that called ModImageMakeEditable with 'filename', or "". Unlike most Mod* functions, this one is available everywhere.]
+ModImageDoesExist( filename:string ) -> bool [Returns true if a file or virtual image exists for the given filename. Unlike most Mod* functions, this one is available everywhere.]
+ModMagicNumbersFileAdd( filename:string ) [Available only during mod initialization in init.lua.]
+ModMaterialsFileAdd( filename:string ) [Available only during mod initialization in init.lua.]
+ModRegisterAudioEventMappings( filename:string ) [Registers custom fmod events. Needs to be called to make the game find events in mods' audio banks. Event mapping (GUID) files can be generated using FMOD Studio. Available only during mod initialization in init.lua.]
+ModRegisterMusicBank( filename:string ) [Registers a custom bank in the music system. After that the tracks can be configured to play through Biome xml, or using GameTriggerMusicEvent. ModRegisterAudioEventMappings also needs to be called to make the game recognize the events in the bank. Available only during mod initialization in init.lua.]
+ModDevGenerateSpriteUVsForDirectory( directory_path:string, override_existing:bool = false ) [Please supply a path starting with "mods/YOUR_MOD_HERE/" or "data/". If override_existing is true, will always generate new maps, overriding existing files. UV maps are generated when you start or continue a game with your mod enabled. Available only during mod initialization in init.lua via noita_dev.exe]
+]]
+
+---Returns the paths of files that have been appended to 'filename' using ModLuaFileAppend(). Unlike most Mod* functions, this one is available everywhere.
+---@param filename string
+---@return string[] filenames
+function ModLuaFileGetAppends(filename) end
+---Replaces the appends list (see ModLuaFileAppend) of a file with the given table. Available only in init.lua. Should not be called after OnMostPostInit(should be avoided after that because changes might not propagate, or could work in non-deterministic manner).
+---@param filename string
+---@param filenames string[]
+function ModLuaFileSetAppends(filename, filenames) end
+---Returns the current (modded or not) content of the data file 'filename'. Allows access only to data files and files from enabled mods. "mods/mod/data/file.xml" and "data/file.xml" point to the same file. Unlike most Mod* functions, this one is available everywhere.
 ---@param filename string
 ---@return string string
 function ModTextFileGetContent(filename) end
----Sets the content the game sees for the file 'filename'. Allows access only to mod and data files. Available only during mod initialization.
+---Sets the content the game sees for the file 'filename'. Allows access only to mod and data files. "mods/mod/data/file.xml" and "data/file.xml" point to the same file. Available only in init.lua. Should not be called after OnMostPostInit (should be avoided after that because changes might not propagate, or could work in non-deterministic manner). ModTextFileWhoSetContent might also return incorrect values if this is used after OnMostPostInit.
 ---@param filename string
 ---@param new_content string
 function ModTextFileSetContent(filename, new_content) end
----Returns the id of the last mod that called ModTextFileSetContent with 'filename', or "". Available only during mod initialization.
+---Returns the id of the last mod that called ModTextFileSetContent with 'filename', or "". Unlike most Mod* functions, this one is available everywhere.
 ---@param filename string
 ---@return string string
 function ModTextFileWhoSetContent(filename) end
----Available only during mod initialization.
+---Makes an image available for in-memory editing through ModImageGetPixel() and ModImageSetPixel(). Returns an id that can be used to access the image, and the dimensions of the image. If an image file with the name wasn't found, an in-memory image of the given size will be created, filled with empty pixels (0x0), and added to the virtual filesystem under 'filename'. If an image with the given name has been previously created through ModImageMakeEditable, the id of that image will be returned. In case memory allocation failed, or if this is called outside mod init using a filename that wasn't succesfully used with this function during the init, 0 will be returned as the id. The game will apply further processing to some images, so the final binary data might end up different. For example, R and B channels are sometimes swapped, and on some textures the colors will be extended by one pixel outside areas where A>0. If game code has already loaded the image (for example this could be the case with some UI textures), the changes will probably not be applied. The changes done using the ModImage* API will need to be done again on each game restart/new game. It's possible that some images will be cached over restarts, and changes will not be visible in the game until a full executable restart - you will have to figure out where that applies. Allows access to data files and files from enabled mods. "mods/mod/data/file.png" and "data/file.png" point to the same file. Available only in init.lua during mod init.
+---@param filename string
+---@param width number
+---@param height number
+---@return number id, number w, number h
+function ModImageMakeEditable(filename, width, height) end
+---Returns an id that can be used with ModImageGetPixel and ModImageSetPixel, and the dimensions of the image. If a previous successful call to ModImageMakeEditable hasn't been made with the given filename, 0 will be returned as 'id', 'w' and 'h'. Unlike most Mod* functions, this one is available everywhere.
+---@param filename string
+---@return number id, number w, number h
+function ModImageIdFromFilename(filename) end
+---Returns the color of a pixel in ABGR format (0xABGR). 'x' and 'y' are zero-based. Use ModImageMakeEditable to create an id that can be used with this function. While it's possible to edit images after mod init, it's not guaranteed that game systems will see the changes, as the system might already have loaded the image at that point. The function will silently fail nad return 0 if 'id' isn't valid. Unlike most Mod* functions, this one is available everywhere.
+---@param id number
+---@param x number
+---@param y number
+---@return number color
+function ModImageGetPixel(id, x, y) end
+---Sets the color of a pixel in ABGR format (0xABGR). 'x' and 'y' are zero-based. Use ModImageMakeEditable to create an id that can be used with this function. The function will silently fail if 'id' isn't valid. Unlike most Mod* functions, this one is available everywhere.
+---@param id number
+---@param x number
+---@param y number
+---@param color number
+function ModImageSetPixel(id, x, y, color) end
+---Returns the id of the last mod that called ModImageMakeEditable with 'filename', or "". Unlike most Mod* functions, this one is available everywhere.
+---@param filename string
+---@return string string
+function ModImageWhoSetContent(filename) end
+---Returns true if a file or virtual image exists for the given filename. Unlike most Mod* functions, this one is available everywhere.
+---@param filename string
+---@return boolean
+function ModImageDoesExist(filename) end
+---Available only during mod initialization in init.lua.
 ---@param filename string
 function ModMagicNumbersFileAdd(filename) end
----Available only during mod initialization.
+---Available only during mod initialization in init.lua.
 ---@param filename string
 function ModMaterialsFileAdd(filename) end
----Available only during mod initialization.
+---Registers custom fmod events. Needs to be called to make the game find events in mods' audio banks. Event mapping (GUID) files can be generated using FMOD Studio. Available only during mod initialization in init.lua.
 ---@param filename string
 function ModRegisterAudioEventMappings(filename) end
----Please supply a path starting with "mods/YOUR_MOD_HERE/" or "data/". If override_existing is true, will always generate new maps, overriding existing files. UV maps are generated when you start or continue a game with your mod enabled. Available only during mod initialization via noita_dev.exe
+---Registers a custom bank in the music system. After that the tracks can be configured to play through Biome xml, or using GameTriggerMusicEvent. ModRegisterAudioEventMappings also needs to be called to make the game recognize the events in the bank. Available only during mod initialization in init.lua.
+---@param filename string
+function ModRegisterMusicBank(filename) end
+---Please supply a path starting with
+---"mods/YOUR_MOD_HERE/" or "data/". If override_existing is true, will always generate new maps, overriding existing files. UV maps are generated when you start or continue a game with your mod enabled. Available only during mod initialization in init.lua via noita_dev.exe
 ---@param directory_path string
 ---@param override_existing boolean? false
 function ModDevGenerateSpriteUVsForDirectory(directory_path, override_existing) end
