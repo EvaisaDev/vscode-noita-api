@@ -1775,6 +1775,17 @@ function dofile(filename) end
 ---@param filename string
 ---@return any script_return_type, string|nil error_string
 function dofile_once(filename) end
+---Same as `print`, but also always writes to logger.txt.
+---@param ... any
+---@see print
+function print_error(...) end
+---Overwritten implementation of builtin loadfile with limited functionality.
+---@param filename string
+---@return function|nil
+---@return string|nil  error_message
+function loadfile(filename) end
+---@param filename string
+function do_mod_appends(filename) end
 -- Can be defined in init.lua.
 -- Called upon loading a game.
 function OnModPreInit() end
@@ -1815,6 +1826,9 @@ function OnModSettingsChanged() end
 -- Can be defined in init.lua.
 -- Will be called when the game is paused, either by the pause menu or some inventory menus. Please be careful with this, as not everything will behave well when called while the game is paused.
 function OnPausePreUpdate() end
+-- Can be defined in init.lua.
+-- Called when the progress window is open. 2 integers should be returned, the first is total secrets and second is found secrets.
+function OnCountSecrets() end
 
 -- Defined in "data/scripts/lib/utilities.lua".
 GUI_OPTION = {
